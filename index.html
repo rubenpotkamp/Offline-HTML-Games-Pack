@@ -49,9 +49,12 @@
               btn.textContent = file.name.replace(".html", "");
               btn.className = "game-button";
 
+              const pagesBase = "https://rubenpotkamp.github.io/Offline-HTML-Games-Pack/";
+
               btn.onclick = () => {
-                iframe.src = file.download_url;
+                iframe.src = pagesBase + path + "/" + file.name;
               };
+
 
               listDiv.appendChild(btn);
             });
