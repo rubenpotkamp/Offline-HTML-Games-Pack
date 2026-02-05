@@ -23,41 +23,11 @@
       .game-button:hover {
         background: #444;
       }
-
-      #fullscreen-btn {
-        margin-bottom: 15px;
-      }
-
-      #game-wrapper {
-        width: 100%;
-        height: 700px;
-        position: relative;
-      }
-
-      #game-wrapper iframe {
-        width: 100%;
-        height: 100%;
-        border: none;
-      }
-
-      #game-wrapper:fullscreen {
-        width: 100vw;
-        height: 100vh;
-      }
     </style>
   </head>
   <body>
     <h2>🎮 Games</h2>
-
-    <button id="fullscreen-btn" class="game-button">
-      ⛶ Fullscreen
-    </button>
-
     <div id="games-list"></div>
-
-    <div id="game-wrapper">
-      <iframe id="game-frame"></iframe>
-    </div>
 
     <script>
       const owner = "rubenpotkamp";
@@ -66,9 +36,6 @@
       const pagesBase = "https://rubenpotkamp.github.io/Offline-HTML-Games-Pack/";
 
       const listDiv = document.getElementById("games-list");
-      const iframe = document.getElementById("game-frame");
-      const fullscreenBtn = document.getElementById("fullscreen-btn");
-      const gameWrapper = document.getElementById("game-wrapper");
 
       // Games ophalen
       fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`)
@@ -82,8 +49,10 @@
               btn.className = "game-button";
 
               btn.onclick = () => {
-                iframe.src = pagesBase + path + "/" + file.name;
+                const gameUrl = pagesBase + path + "/" + file.name;
+                window.open(gameUrl, "_blank");
               };
+
 
               listDiv.appendChild(btn);
             });
@@ -92,24 +61,6 @@
           console.error("Fout bij laden games:", err);
           listDiv.textContent = "Kon games niet laden.";
         });
-
-      // Fullscreen toggle
-      fullscreenBtn.onclick = () => {
-        if (!document.fullscreenElement) {
-          gameWrapper.requestFullscreen();
-        } else {
-          document.exitFullscreen();
-        }
-      };
-
-      // Knoptekst aanpassen
-      document.addEventListener("fullscreenchange", () => {
-        if (document.fullscreenElement) {
-          fullscreenBtn.textContent = "⤢ Exit Fullscreen";
-        } else {
-          fullscreenBtn.textContent = "⛶ Fullscreen";
-        }
-      });
     </script>
   </body>
 </html>
