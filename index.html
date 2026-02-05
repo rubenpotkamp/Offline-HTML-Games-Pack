@@ -42,10 +42,13 @@
         .then(res => res.json())
         .then(files => {
           files
-            .filter(file => file.name.endsWith(".html"))
+            .filter(file => 
+              file.name.toLowerCase().endsWith(".html") || 
+              file.name.toLowerCase().endsWith(".htm")
+            )
             .forEach(file => {
               const btn = document.createElement("button");
-              btn.textContent = file.name.replace(".html", "");
+              btn.textContent = file.name.replace(/\.html?$/i, "");
               btn.className = "game-button";
 
               btn.onclick = () => {
