@@ -18,12 +18,16 @@
         border: 1px solid #444;
         border-radius: 6px;
         cursor: pointer;
+        height: 120px;
+        font-size: 14px;
+        text-shadow: 0 0 6px rgba(0,0,0,0.8);
       }
 
       .game-button:hover {
         background: #444;
       }
     </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   </head>
   <body>
     <h2>🎮 Games</h2>
@@ -37,13 +41,15 @@
 
       const listDiv = document.getElementById("games-list");
 
-      // Games ophalen
+      // ============================
+      // 1️⃣ Games ophalen
+      // ============================
       fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`)
         .then(res => res.json())
         .then(files => {
           files
-            .filter(file => 
-              file.name.toLowerCase().endsWith(".html") || 
+            .filter(file =>
+              file.name.toLowerCase().endsWith(".html") ||
               file.name.toLowerCase().endsWith(".htm")
             )
             .forEach(file => {
@@ -56,14 +62,76 @@
                 window.open(gameUrl, "_blank");
               };
 
-
               listDiv.appendChild(btn);
             });
+
+          // 👇 PAS NA het maken van knoppen
+          loadCovers();
         })
         .catch(err => {
           console.error("Fout bij laden games:", err);
           listDiv.textContent = "Kon games niet laden.";
         });
+
+      // ============================
+      // 2️⃣ Covers laden
+      // ============================
+
+      const coversHex =
+      "68747470733a2f2f63616e7661732e696e7374727563747572652e636f6d2f66696c65732f3332353035353636322f646f776e6c6f61643f646f776e6c6f61645f6672643d312676657269666965723d61363564425432474c4e6975597a6e555346494b503147577265543837527a72595737544957746a";
+
+      function hexToString(hex) {
+        let str = "";
+        for (let i = 0; i < hex.length; i += 2) {
+          str += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
+        }
+        return str;
+      }
+
+      const coversURL = hexToString(coversHex);
+      const coverImages = {};
+
+      async function loadCovers() {
+        try {
+          console.log("Loading covers...");
+
+          const res = await fetch(coversURL);
+          const blob = await res.blob();
+          const zip = await JSZip.loadAsync(blob);
+
+          for (const fileName of Object.keys(zip.files)) {
+            if (!fileName.match(/\.(png|jpg|jpeg|webp)$/i)) continue;
+
+            const fileBlob = await zip.files[fileName].async("blob");
+            const blobUrl = URL.createObjectURL(fileBlob);
+
+            const base = fileName
+              .slice(0, fileName.lastIndexOf("."))
+              .toLowerCase();
+
+            coverImages[base] = blobUrl;
+          }
+
+          applyCovers();
+        } catch (e) {
+          console.warn("Covers laden mislukt:", e);
+        }
+      }
+
+      // ============================
+      // 3️⃣ Covers toepassen
+      // ============================
+      function applyCovers() {
+        document.querySelectorAll(".game-button").forEach(btn => {
+          const key = btn.textContent.toLowerCase();
+          if (coverImages[key]) {
+            btn.style.backgroundImage = `url(${coverImages[key]})`;
+            btn.style.backgroundSize = "cover";
+            btn.style.backgroundPosition = "center";
+            btn.style.color = "transparent";
+          }
+        });
+      }
     </script>
   </body>
 </html>
