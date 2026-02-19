@@ -1,137 +1,257 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8">
-    <title>Spelletjes</title>
-    <style>
-      #games-list {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-        gap: 10px;
-        margin-bottom: 20px;
-      }
+  <meta charset="UTF-8">
+  <title>Spelletjes</title>
 
-      .game-button {
-        padding: 10px;
-        background: #222;
-        color: white;
-        border: 1px solid #444;
-        border-radius: 6px;
-        cursor: pointer;
-        height: 120px;
-        font-size: 14px;
-        text-shadow: 0 0 6px rgba(0,0,0,0.8);
-      }
+  <style>
+    body {
+      margin: 0;
+      font-family: system-ui, sans-serif;
+      background: radial-gradient(circle at top, #0f0f18, #050507 70%);
+      color: white;
+    }
 
-      .game-button:hover {
-        background: #444;
-      }
-    </style>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    /* ================= HEADER ================= */
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 24px;
+    }
+
+    h2 {
+      margin: 0;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+
+    .search {
+      position: relative;
+    }
+
+    .search input {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 999px;
+      padding: 8px 14px;
+      color: white;
+      outline: none;
+      backdrop-filter: blur(10px);
+      transition: 0.25s;
+    }
+
+    .search input:focus {
+      border-color: #00e0ff;
+      box-shadow: 0 0 12px #00e0ff55;
+    }
+
+    /* ================= GRID ================= */
+    #games-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 16px;
+      padding: 20px;
+    }
+
+    /* ================= CARD ================= */
+    .game-button {
+      position: relative;
+      aspect-ratio: 1 / 1; /* vierkant */
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: #111;
+      cursor: pointer;
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    /* Cover layer */
+    .game-button::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-size: cover;
+      background-position: center;
+      filter: brightness(0.6);
+      transition: 0.3s ease;
+    }
+
+    /* Gradient overlay */
+    .game-button::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(0,0,0,0.8), transparent 60%);
+    }
+
+    /* Titel */
+    .title {
+      position: absolute;
+      bottom: 10px;
+      left: 12px;
+      right: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      z-index: 2;
+      text-shadow: 0 0 6px rgba(0,0,0,0.9);
+    }
+
+    /* ================= FUTURISTIC HOVER ================= */
+    .game-button:hover {
+      transform: translateY(-6px) scale(1.03);
+      box-shadow:
+        0 0 20px rgba(0, 224, 255, 0.4),
+        0 10px 30px rgba(0,0,0,0.6);
+    }
+
+    .game-button:hover::before {
+      filter: brightness(0.8) saturate(1.2);
+    }
+
+    /* Glow border */
+    .game-button:hover {
+      border-color: #00e0ff;
+    }
+  </style>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   </head>
+
   <body>
+
+  <div class="topbar">
     <h2>🎮 Games</h2>
-    <div id="games-list"></div>
+    <div class="search">
+      <input id="search" placeholder="Zoeken...">
+    </div>
+  </div>
 
-    <script>
-      const owner = "rubenpotkamp";
-      const repo = "Offline-HTML-Games-Pack";
-      const path = "offline";
-      const pagesBase = "https://rubenpotkamp.github.io/Offline-HTML-Games-Pack/";
+  <div id="games-list"></div>
 
-      const listDiv = document.getElementById("games-list");
+  <script>
+  const owner = "rubenpotkamp";
+  const repo = "Offline-HTML-Games-Pack";
+  const path = "offline";
+  const pagesBase = "https://rubenpotkamp.github.io/Offline-HTML-Games-Pack/";
+  const listDiv = document.getElementById("games-list");
 
-      // ============================
-      // 1️⃣ Games ophalen
-      // ============================
-      fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`)
-        .then(res => res.json())
-        .then(files => {
-          files
-            .filter(file =>
-              file.name.toLowerCase().endsWith(".html") ||
-              file.name.toLowerCase().endsWith(".htm")
-            )
-            .forEach(file => {
-              const btn = document.createElement("button");
-              btn.textContent = file.name.replace(/\.html?$/i, "");
-              btn.className = "game-button";
+  let allGames = [];
 
-              btn.onclick = () => {
-                const gameUrl = pagesBase + path + "/" + file.name;
-                window.open(gameUrl, "_blank");
-              };
+  /* ============================
+    1️⃣ Games ophalen
+  ============================ */
+  fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`)
+    .then(res => res.json())
+    .then(files => {
+      allGames = files.filter(file =>
+        file.name.toLowerCase().endsWith(".html") ||
+        file.name.toLowerCase().endsWith(".htm")
+      );
 
-              listDiv.appendChild(btn);
-            });
+      renderGames(allGames);
+      loadCovers();
+    })
+    .catch(err => {
+      console.error("Fout bij laden games:", err);
+      listDiv.textContent = "Kon games niet laden.";
+    });
 
-          // 👇 PAS NA het maken van knoppen
-          loadCovers();
-        })
-        .catch(err => {
-          console.error("Fout bij laden games:", err);
-          listDiv.textContent = "Kon games niet laden.";
-        });
+  /* ============================
+    Render cards
+  ============================ */
+  function renderGames(games) {
+    listDiv.innerHTML = "";
 
-      // ============================
-      // 2️⃣ Covers laden
-      // ============================
+    games.forEach(file => {
+      const card = document.createElement("div");
+      card.className = "game-button";
 
-      const coversHex =
-      "68747470733a2f2f63616e7661732e696e7374727563747572652e636f6d2f66696c65732f3332353035353636322f646f776e6c6f61643f646f776e6c6f61645f6672643d312676657269666965723d61363564425432474c4e6975597a6e555346494b503147577265543837527a72595737544957746a";
+      const title = document.createElement("div");
+      title.className = "title";
+      title.textContent = file.name.replace(/\.html?$/i, "");
 
-      function hexToString(hex) {
-        let str = "";
-        for (let i = 0; i < hex.length; i += 2) {
-          str += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
-        }
-        return str;
+      card.appendChild(title);
+
+      card.onclick = () => {
+        const gameUrl = pagesBase + path + "/" + file.name;
+        window.open(gameUrl, "_blank");
+      };
+
+      listDiv.appendChild(card);
+    });
+
+    applyCovers();
+  }
+
+  /* ============================
+    Zoekfunctie
+  ============================ */
+  document.getElementById("search").addEventListener("input", e => {
+    const term = e.target.value.toLowerCase();
+    const filtered = allGames.filter(f =>
+      f.name.toLowerCase().includes(term)
+    );
+    renderGames(filtered);
+  });
+
+  /* ============================
+    Covers laden
+  ============================ */
+  const coversHex =
+  "68747470733a2f2f63616e7661732e696e7374727563747572652e636f6d2f66696c65732f3332353035353636322f646f776e6c6f61643f646f776e6c6f61645f6672643d312676657269666965723d61363564425432474c4e6975597a6e555346494b503147577265543837527a72595737544957746a";
+
+  function hexToString(hex) {
+    let str = "";
+    for (let i = 0; i < hex.length; i += 2) {
+      str += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
+    }
+    return str;
+  }
+
+  const coversURL = hexToString(coversHex);
+  const coverImages = {};
+
+  async function loadCovers() {
+    try {
+      const res = await fetch(coversURL);
+      const blob = await res.blob();
+      const zip = await JSZip.loadAsync(blob);
+
+      for (const fileName of Object.keys(zip.files)) {
+        if (!fileName.match(/\.(png|jpg|jpeg|webp)$/i)) continue;
+
+        const fileBlob = await zip.files[fileName].async("blob");
+        const blobUrl = URL.createObjectURL(fileBlob);
+
+        const base = fileName
+          .slice(0, fileName.lastIndexOf("."))
+          .toLowerCase();
+
+        coverImages[base] = blobUrl;
       }
 
-      const coversURL = hexToString(coversHex);
-      const coverImages = {};
+      applyCovers();
+    } catch (e) {
+      console.warn("Covers laden mislukt:", e);
+    }
+  }
 
-      async function loadCovers() {
-        try {
-          console.log("Loading covers...");
-
-          const res = await fetch(coversURL);
-          const blob = await res.blob();
-          const zip = await JSZip.loadAsync(blob);
-
-          for (const fileName of Object.keys(zip.files)) {
-            if (!fileName.match(/\.(png|jpg|jpeg|webp)$/i)) continue;
-
-            const fileBlob = await zip.files[fileName].async("blob");
-            const blobUrl = URL.createObjectURL(fileBlob);
-
-            const base = fileName
-              .slice(0, fileName.lastIndexOf("."))
-              .toLowerCase();
-
-            coverImages[base] = blobUrl;
-          }
-
-          applyCovers();
-        } catch (e) {
-          console.warn("Covers laden mislukt:", e);
-        }
+  /* ============================
+    Covers toepassen
+  ============================ */
+  function applyCovers() {
+    document.querySelectorAll(".game-button").forEach(card => {
+      const key = card.querySelector(".title").textContent.toLowerCase();
+      if (coverImages[key]) {
+        card.style.setProperty("--bg", `url(${coverImages[key]})`);
+        card.style.backgroundImage = `url(${coverImages[key]})`;
+        card.style.backgroundSize = "cover";
+        card.style.backgroundPosition = "center";
       }
+    });
+  }
+  </script>
 
-      // ============================
-      // 3️⃣ Covers toepassen
-      // ============================
-      function applyCovers() {
-        document.querySelectorAll(".game-button").forEach(btn => {
-          const key = btn.textContent.toLowerCase();
-          if (coverImages[key]) {
-            btn.style.backgroundImage = `url(${coverImages[key]})`;
-            btn.style.backgroundSize = "cover";
-            btn.style.backgroundPosition = "center";
-            btn.style.color = "transparent";
-          }
-        });
-      }
-    </script>
   </body>
 </html>
